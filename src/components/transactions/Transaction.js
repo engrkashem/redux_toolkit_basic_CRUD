@@ -1,30 +1,36 @@
-import editImage from '../../assets/edit.svg';
-import deleteImage from '../../assets/delete.svg';
-import { useDispatch } from 'react-redux';
-import { editActive } from '../../features/transaction/transactionSlice';
+import editImage from "../../assets/edit.svg";
+import deleteImage from "../../assets/delete.svg";
+import { useDispatch } from "react-redux";
+import { editActive, removeTransaction } from "../../features/transaction/transactionSlice";
+import { numberWithCommas } from "../../utils/thousandSeperator";
 
-const Transaction = ({transaction={}}) => {
-  const dispatch=useDispatch();
+const Transaction = ({ transaction = {} }) => {
+  const dispatch = useDispatch();
 
+  const { name, amount, type,id } = transaction;
 
-  const {name, amount, type}=transaction;
+  const handleUpdate = () => {
+    dispatch(editActive(transaction));
+  };
 
-  
+  const handleDelete = () => {
+    dispatch(removeTransaction(id));
+  };
 
   return (
     <li className={`transaction ${type}`}>
-            <p>{name}</p>
-            <div className="right">
-              <p>৳ {amount}</p>
-              <button onClick={()=>{dispatch(editActive(transaction))}} className="link">
-                <img className="icon" src={editImage} alt="Edit" />
-              </button>
-              <button  className="link">
-                <img className="icon" src={deleteImage} alt="Delete" />
-              </button>
-            </div>
-          </li>
-  )
+      <p>{name}</p>
+      <div className="right">
+        <p>৳ {numberWithCommas(amount)}</p>
+        <button onClick={handleUpdate} className="link">
+          <img className="icon" src={editImage} alt="Edit" />
+        </button>
+        <button onClick={handleDelete} className="link">
+          <img className="icon" src={deleteImage} alt="Delete" />
+        </button>
+      </div>
+    </li>
+  );
 };
 
 export default Transaction;
