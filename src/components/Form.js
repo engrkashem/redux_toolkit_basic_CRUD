@@ -1,25 +1,70 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { createTransaction } from "../features/transaction/transactionSlice";
+import {
+  createTransaction,
+  editInActive,
+  updateTransaction,
+} from "../features/transaction/transactionSlice";
 
 const Form = () => {
   const [name, setName] = useState("");
   const [type, setType] = useState("");
   const [amount, setAmount] = useState("");
+  const [editMode, setEditMode] = useState(false);
 
-  const dispatch=useDispatch();
-  const {isLoading, isError, error}=useSelector(state=>state.transaction);
+  const dispatch = useDispatch();
+  const { isLoading, isError, error, editing } = useSelector(
+    (state) => state.transaction
+  );
 
-  const handleCreate=(e)=>{
+  const reset = () => {
+    setName("");
+    setType("");
+    setAmount("");
+  };
+
+  // listen for edit active/inactive
+  useEffect(() => {
+    if (editing?.id) {
+      const { name, type, amount } = editing;
+      setEditMode(true);
+      setName(name);
+      setType(type);
+      setAmount(amount);
+    } else {
+      setEditMode(false);
+      reset();
+    }
+  }, [dispatch, editing]);
+
+  const handleCreate = (e) => {
     e.preventDefault();
-    dispatch(createTransaction({name, type, amount:Number(amount)}))
-  }
+    dispatch(createTransaction({ name, type, amount: Number(amount) }));
+    reset();
+  };
+
+  const handleUpdate = (e) => {
+    e.preventDefault();
+    dispatch(
+      updateTransaction({
+        id: editing?.id,
+        data: { name, type, amount: Number(amount) },
+      })
+    );
+    reset();
+    setEditMode(false);
+  };
+
+  const cancelEditModeHandler = () => {
+    setEditMode(false);
+    dispatch(editInActive());
+  };
 
   return (
     <div className="form">
       <h3>Add new transaction</h3>
 
-      <form onSubmit={handleCreate}>
+      <form onSubmit={editMode ? handleUpdate : handleCreate}>
         <div className="form-group">
           <label>Name</label>
           <input
@@ -70,12 +115,18 @@ const Form = () => {
           />
         </div>
 
-        <button disabled={isLoading} className="btn" type="submit">Add Transaction</button>
+        <button disabled={isLoading} className="btn" type="submit">
+          {editMode ? "Edit Transaction" : "Add Transaction"}
+        </button>
 
         {!isLoading && isError && <p className="error">{error}</p>}
       </form>
 
-      <button className="btn cancel_edit">Cancel Edit</button>
+      {editMode && (
+        <button onClick={cancelEditModeHandler} className="btn cancel_edit">
+          Cancel Edit
+        </button>
+      )}
     </div>
   );
 };
